@@ -1,0 +1,18 @@
+{
+  "name": "fraise-insights-backend",
+  "version": "1.0.0",
+  "description": "Graph-powered recommendation & trust network API for Fraise, backed by CognoDB",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/scripts/seed.js"
+  },
+  "dependencies": {
+    "neo4j-driver": "^5.24.0",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  }
+}
