@@ -6,8 +6,9 @@ function App() {
   const [activeTab, setActiveTab] = useState('recommendations');
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-      <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col">
+      {/* Navigation Bar - Static/Relative to prevent overlap */}
+      <nav className="border-b border-slate-800 bg-slate-900/90 backdrop-blur w-full z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
@@ -42,7 +43,8 @@ function App() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      {/* Main Content Area */}
+      <main className="max-w-7xl w-full mx-auto px-6 py-8 flex-1">
         {activeTab === 'recommendations' && <CustomerRecommendations />}
         {activeTab === 'graph' && <GraphViewer />}
       </main>
