@@ -230,11 +230,11 @@ A separate Cypher query retrieves the relevant customer/restaurant subgraph used
 
 ### Recommendations
 
-![Recommendations](./screenshots/Screenshot_19-8-2026_194722_localhost.png)
+![Recommendations](./screenshots/Screenshot_19-8-2026_194722_localhost.jpeg)
 
 ### Graph Visualization
 
-![Graph Visualization](./screenshots/Screenshot_19-8-2026_194758_localhost.png)
+![Graph Visualization](./screenshots/Screenshot_19-8-2026_194758_localhost.jpeg)
 
 ---
 
