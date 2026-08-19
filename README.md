@@ -226,7 +226,7 @@ A separate Cypher query retrieves the relevant customer/restaurant subgraph used
 
 ### Main Application
 
-![Dashboard](./screenshots/screenshots/Screenshot_19-8-2026_194722_localhost.jpeg)
+![Dashboard](./screenshots/Screenshot_19-8-2026_194722_localhost.jpeg)
 
 ### Recommendations
 
