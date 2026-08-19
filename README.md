@@ -226,15 +226,15 @@ A separate Cypher query retrieves the relevant customer/restaurant subgraph used
 
 ### Main Application
 
-![Dashboard](./screenshots/dashboard.png)
+![Dashboard](./screenshots/Screenshot_19-8-2026_194722_localhost.png)
 
 ### Recommendations
 
-![Recommendations](./screenshots/recommendations.png)
+![Recommendations](./screenshots/Screenshot_19-8-2026_194722_localhost.png)
 
 ### Graph Visualization
 
-![Graph Visualization](./screenshots/graph.png)
+![Graph Visualization](./screenshots/Screenshot_19-8-2026_194758_localhost.png)
 
 ---
 
