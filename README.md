@@ -1,427 +1,288 @@
-# GraphDB Application — Wexa AI Take-Home Assignment
+# GraphDB Application - Wexa AI Take-Home Assignment
 
-A full-stack graph database application built with **CognoDB**, **Node.js**, **Express**, **React**, and **Tailwind CSS**.
-
-The application demonstrates how graph data modeling and multi-hop traversal can be used to build a recommendation system based on customer relationships, restaurant preferences, and trust signals.
+A full-stack graph database application built with **CognoDB**, **Node.js**, **Express**, **React**, and the official **Neo4j JavaScript driver**.
 
 ---
 
-## Overview
+## 1. Use Case
 
-This project was built as part of the **Wexa AI Take-Home Assignment**.
+This application is a **Customer-Restaurant Recommendation & Trust Network**.
 
-The application uses **CognoDB** as the graph database layer and the official **Neo4j JavaScript Driver** to communicate with the database over the Bolt protocol.
+It models customers, friendships, restaurant preferences, ratings, and visits as a connected graph.
 
-The main goal is to demonstrate:
+The application uses these relationships to:
 
-* Graph-oriented data modeling
-* Multi-hop Cypher queries
-* Parameterized database queries
-* Realistic graph seed data
-* A clean backend architecture
-* An interactive frontend for exploring the graph
-* Graceful database error handling
+* Recommend restaurants based on a customer's social network.
+* Discover recommendations through friends and friends-of-friends up to **4 hops away**.
+* Exclude restaurants the customer has already visited.
+* Analyze trust-related graph patterns.
+* Visualize the relevant graph connections.
 
 ---
 
-## Use Case
+## 2. Why a Graph Database?
 
-### Customer & Restaurant Recommendation Network
+The core of this application is the relationships between customers and restaurants.
 
-The application models customers, their social connections, and the restaurants they like.
-
-A customer can receive restaurant recommendations based on restaurants liked by people within their social network, including multi-hop connections up to four levels deep.
-
-For example:
+A recommendation can require traversing multiple friendship relationships before reaching a restaurant:
 
 ```text
-Customer A
+(Customer)
     │
-    └── FRIEND
-          │
-          └── Customer B
-                │
-                └── FRIEND
-                      │
-                      └── Customer C
-                            │
-                            └── LIKED
-                                  │
-                                  ▼
-                            Restaurant
+    └── FRIEND ──> (Customer)
+                       │
+                       └── FRIEND ──> (Customer)
+                                          │
+                                          └── LIKES ──> (Restaurant)
 ```
 
-This allows the application to answer relationship-oriented questions such as:
+In a relational database, this type of multi-hop traversal would require multiple joins or recursive queries, making the query more complex as the traversal depth increases.
 
-> "Which restaurants are liked by people connected to this customer within four degrees?"
+With **CognoDB**, these relationships are directly represented in the graph and can be traversed naturally using Cypher.
 
----
+This makes graph modeling a good fit for:
 
-## Why a Graph Database?
-
-This use case is naturally relationship-driven.
-
-In a traditional relational database, finding recommendations across multiple levels of a customer's social network would require multiple self-joins and increasingly complex queries as the traversal depth grows.
-
-With a graph database, relationships are first-class entities. **Cypher** allows these relationships to be expressed directly as graph patterns, making multi-hop traversal easier to write, understand, and maintain.
-
-CognoDB supports **openCypher over the Bolt protocol**, allowing the application to use the official Neo4j driver without requiring a custom database SDK.
+* Multi-hop recommendations.
+* Social connections.
+* Relationship-based filtering.
+* Path existence and non-existence queries.
 
 ---
 
-## Data Model
+## 3. Data Model
 
-The graph currently contains two primary node types:
+```text
+(Customer {id, name})
+       │
+       ├──[:FRIEND]──> (Customer)
+       │
+       ├──[:LIKES {rating, timestamp}]──> (Restaurant)
+       │
+       └──[:VISITED {date}]──> (Restaurant)
+
+(Restaurant {id, name, cuisine})
+```
 
 ### Nodes
 
-* `Customer`
+**Customer**
 
-  * `id`
-  * `name`
-  * `location`
+```text
+Customer {
+  id,
+  name
+}
+```
 
-* `Restaurant`
+**Restaurant**
 
-  * `id`
-  * `name`
-  * `cuisine`
-  * `avgRating`
+```text
+Restaurant {
+  id,
+  name,
+  cuisine
+}
+```
 
 ### Relationships
 
-* `(:Customer)-[:FRIEND]->(:Customer)`
-* `(:Customer)-[:LIKED]->(:Restaurant)`
-
-### Graph Diagram
+**FRIEND**
 
 ```text
-                    ┌──────────────┐
-                    │   Customer   │
-                    └──────┬───────┘
-                           │
-                        FRIEND
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Customer   │
-                    └──────┬───────┘
-                           │
-                         LIKED
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │  Restaurant  │
-                    └──────────────┘
+(Customer)-[:FRIEND]->(Customer)
 ```
 
-The seed data intentionally contains overlapping relationships so that multi-hop recommendations can produce meaningful results.
-
----
-
-## Main Graph Queries
-
-### 1. Multi-hop Restaurant Recommendation
-
-The main recommendation query traverses the customer's network up to four friendship hops and finds restaurants liked by connected customers.
-
-```cypher
-MATCH (c:Customer {id: $customerId})
-      -[:FRIEND*1..4]-
-      (f:Customer)
-      -[:LIKED]->
-      (r:Restaurant)
-RETURN DISTINCT
-    r.name AS name,
-    r.cuisine AS cuisine,
-    r.avgRating AS avgRating
-ORDER BY r.avgRating DESC
-```
-
-The query uses a parameter (`$customerId`) rather than concatenating user input directly into the Cypher query.
-
-### 2. Restaurant Trust Signals
-
-The application also uses graph traversal to determine trust-related signals based on the existence or absence of specific paths between customers and restaurants.
-
-### 3. Graph Subgraph
-
-A dedicated graph endpoint exposes a portion of the network so the frontend can visualize customers, restaurants, and their relationships.
-
----
-
-## Project Structure
+**LIKES**
 
 ```text
-backend/
-├── src/
-│   ├── db/
-│   │   └── driver.js
-│   ├── middleware/
-│   │   └── errorHandler.js
-│   ├── routes/
-│   │   ├── customers.js
-│   │   ├── restaurants.js
-│   │   └── graph.js
-│   ├── scripts/
-│   │   └── seed.js
-│   └── server.js
-├── .env.example
-├── .gitignore
-├── package.json
-└── package-lock.json
+(Customer)-[:LIKES {
+  rating,
+  timestamp
+}]->(Restaurant)
+```
 
-frontend/
-├── public/
-│   └── icons.svg
-├── src/
-│   ├── assets/
-│   │   └── vite.svg
-│   ├── components/
-│   │   ├── CustomerSelector.jsx
-│   │   ├── RecommendationsList.jsx
-│   │   └── GraphVisualizer.jsx
-│   ├── services/
-│   │   └── api.js
-│   ├── App.css
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
-├── index.html
-├── package.json
-├── postcss.config.js
-├── tailwind.config.js
-└── vite.config.js
+**VISITED**
+
+```text
+(Customer)-[:VISITED {
+  date
+}]->(Restaurant)
 ```
 
 ---
 
-## Technology Stack
+## 4. Setup & Run
 
-### Database
+### Prerequisites
 
-* **CognoDB Cloud**
-* OpenCypher
-* Bolt protocol
-
-### Backend
-
-* **Node.js**
-* **Express**
-* **Neo4j Official JavaScript Driver**
-* dotenv
-* CORS
-* Helmet
-* Morgan
-
-### Frontend
-
-* **React**
-* **Vite**
-* **Tailwind CSS**
-
----
-
-## Environment Setup
+* Node.js 18+
+* npm
+* A CognoDB Cloud account
 
 ### 1. Create a CognoDB Instance
 
-Create a free CognoDB Cloud instance and obtain the connection URI and generated password.
+1. Create an account at [https://console.cognodb.com/signup](https://console.cognodb.com/signup).
+2. Create a free **c0 instance**.
+3. Select a region.
+4. Save the generated password for the `cognodb` user.
+5. Copy the connection URI:
 
-The connection URI follows this format:
-
-```env
+```text
 bolt+s://<instance-id>.databases.cognodb.cloud
 ```
 
-The database username is:
+### 2. Clone the Repository
 
-```text
-cognodb
+```bash
+git clone <repository-url>
+cd <project-directory>
 ```
 
-### 2. Configure Environment Variables
+### 3. Configure Environment Variables
 
-Create a `.env` file inside the `backend` directory:
+Create `backend/.env` based on `backend/.env.example`:
 
 ```env
 COGNODB_URI=bolt+s://<your-instance-id>.databases.cognodb.cloud
 COGNODB_USER=cognodb
-COGNODB_PASSWORD=<your-generated-password>
-PORT=4000
+COGNODB_PASSWORD=your_generated_password
+PORT=3000
 ```
 
-**Do not commit `.env` to GitHub.**
+### 4. Install Dependencies
 
-Use `.env.example` as the template for required environment variables.
-
----
-
-## Running the Backend
-
-From the project root:
+Backend:
 
 ```bash
 cd backend
 npm install
 ```
 
-Load the seed data:
+Frontend:
+
+```bash
+cd ../frontend
+npm install
+```
+
+### 5. Seed the Database
+
+From the `backend` directory:
 
 ```bash
 npm run seed
 ```
 
-Start the development server:
+The seed script loads realistic customers, restaurants, friendships, ratings, visits, and overlapping relationships.
+
+### 6. Run the Application
+
+Start the backend:
 
 ```bash
-npm run dev
+cd backend
+npm run start
 ```
 
-Or start the production server:
-
-```bash
-npm start
-```
-
----
-
-## Running the Frontend
-
-Open a second terminal:
+In a separate terminal, start the frontend:
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
-The Vite development server will provide the local frontend URL.
+Open the URL provided by Vite.
 
 ---
 
-## API Endpoints
+## 5. Main Cypher Queries
 
-### Customers
+### Multi-Hop Recommendation
 
-```text
-GET /api/customers/:id/recommendations
-```
+The main recommendation query traverses the customer's social network up to **4 hops** to find restaurants liked by connected customers.
 
-Returns restaurant recommendations based on the customer's social graph.
+It also:
 
-### Restaurants
+* Excludes restaurants already visited by the customer.
+* Uses restaurant ratings.
+* Removes duplicate recommendations.
+* Uses parameterized Cypher through the official Neo4j JavaScript driver.
 
-```text
-GET /api/restaurants/:id/trust
-```
+This is a graph traversal that would be awkward to implement with a fixed number of relational joins, especially as the traversal depth changes.
 
-Returns graph-based trust signals for a restaurant.
+### Trust-Flags Query
 
-### Graph
+The application uses a **path non-existence** query to identify trust-related conditions in the graph.
 
-```text
-GET /api/graph
-```
+This query checks graph connectivity patterns rather than simply looking for individual rows, demonstrating a type of relationship-based query that is naturally expressed with Cypher.
 
-Returns graph data used by the frontend to visualize the network.
+### Graph Query
 
----
-
-## Error Handling
-
-The backend includes centralized error handling through:
-
-```text
-src/middleware/errorHandler.js
-```
-
-Database connection failures and request errors are handled gracefully so that the API can return meaningful error responses instead of crashing the application.
+A separate Cypher query retrieves the relevant customer/restaurant subgraph used by the frontend to visualize the network.
 
 ---
 
-## Seed Data
+## 6. Screenshots
 
-The project includes a dedicated seed script:
+### Main Application
+
+![Dashboard](./screenshots/dashboard.png)
+
+### Recommendations
+
+![Recommendations](./screenshots/recommendations.png)
+
+### Graph Visualization
+
+![Graph Visualization](./screenshots/graph.png)
+
+---
+
+## 7. Project Structure
 
 ```text
-backend/src/scripts/seed.js
-```
-
-The script creates realistic customers, restaurants, friendships, and restaurant preferences.
-
-The relationships intentionally include overlapping connections to demonstrate meaningful multi-hop graph traversal and recommendations.
-
-Run the seed script with:
-
-```bash
-npm run seed
+.
+├── frontend/
+│   ├── public/
+│   │   └── icons.svg
+│   ├── src/
+│   │   ├── assets/
+│   │   │   └── vite.svg
+│   │   ├── components/
+│   │   │   ├── CustomerSelector.jsx
+│   │   │   ├── RecommendationsList.jsx
+│   │   │   └── GraphVisualizer.jsx
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── tailwind.config.js
+│   └── vite.config.js
+│
+├── backend/
+│   ├── src/
+│   │   ├── db/
+│   │   │   └── driver.js
+│   │   ├── middleware/
+│   │   │   └── errorHandler.js
+│   │   ├── routes/
+│   │   │   ├── customers.js
+│   │   │   ├── restaurants.js
+│   │   │   └── graph.js
+│   │   ├── scripts/
+│   │   │   └── seed.js
+│   │   └── server.js
+│   ├── .env.example
+│   └── package.json
+│
+└── README.md
 ```
 
 ---
 
-## Security
 
-Sensitive database credentials are loaded through environment variables.
-
-The following should **never** be committed to the repository:
-
-```text
-.env
-```
-
-Only the example configuration should be included:
-
-```text
-.env.example
-```
-
-Cypher queries are parameterized using the official Neo4j driver to avoid constructing queries through string concatenation.
-
----
-
-## Demo
-
-### Hosted Application
-
-> Add the deployed application URL here.
-
-```text
-https://your-demo-url.com
-```
-
-### Screen Recording
-
-> Add the screen recording link here.
-
----
-
-## Screenshots
-
-Add screenshots of the application here, including:
-
-1. Main recommendation interface
-2. Restaurant trust information
-3. Graph visualization
-
----
-
-## What This Project Demonstrates
-
-This project demonstrates:
-
-* Graph data modeling with nodes and relationships
-* Multi-hop traversal using Cypher
-* Relationship-based recommendations
-* Parameterized Cypher queries
-* Realistic graph seed data
-* REST API design with Express
-* Centralized error handling
-* Interactive graph visualization
-* Separation between frontend, backend, and database layers
-
----
-
-## License
-
-This project was created as a take-home assignment for **Wexa AI**.
