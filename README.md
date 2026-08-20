@@ -4,6 +4,13 @@ A full-stack graph database application built with **CognoDB**, **Node.js**, **E
 
 ---
 
+## Live Demo
+
+* **Hosted Application:** https://wexa-ai-take-home-assignmen-frontend.onrender.com
+* **Screen Recording:** [Watch the application walkthrough on Loom](https://www.loom.com/share/ec40368f0a1f496a860ff82df08977fe)
+
+---
+
 ## 1. Use Case
 
 This application is a **Customer-Restaurant Recommendation & Trust Network**.
@@ -121,7 +128,7 @@ Restaurant {
 
 ### 1. Create a CognoDB Instance
 
-1. Create an account at [https://console.cognodb.com/signup](https://console.cognodb.com/signup).
+1. Create an account at https://console.cognodb.com/signup.
 2. Create a free **c0 instance**.
 3. Select a region.
 4. Save the generated password for the `cognodb` user.
@@ -134,8 +141,8 @@ bolt+s://<instance-id>.databases.cognodb.cloud
 ### 2. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/yehia0/Wexa-AI-Take-Home-Assignmen.git
+cd Wexa-AI-Take-Home-Assignmen
 ```
 
 ### 3. Configure Environment Variables
@@ -148,6 +155,8 @@ COGNODB_USER=cognodb
 COGNODB_PASSWORD=your_generated_password
 PORT=3000
 ```
+
+> **Important:** Never commit `backend/.env` or database credentials to the repository.
 
 ### 4. Install Dependencies
 
@@ -226,15 +235,15 @@ A separate Cypher query retrieves the relevant customer/restaurant subgraph used
 
 ### Main Application
 
-![Dashboard](./screenshots/Screenshot_19-8-2026_194722_localhost.jpeg)
+![Main Application](./screenshots/1.png)
 
 ### Recommendations
 
-![Recommendations](./screenshots/Screenshot_19-8-2026_194722_localhost.jpeg)
+![Recommendations](./screenshots/2.png)
 
 ### Graph Visualization
 
-![Graph Visualization](./screenshots/Screenshot_19-8-2026_194758_localhost.jpeg)
+![Graph Visualization](./screenshots/3.png)
 
 ---
 
@@ -280,9 +289,19 @@ A separate Cypher query retrieves the relevant customer/restaurant subgraph used
 │   ├── .env.example
 │   └── package.json
 │
+├── screenshots/
+│   ├── 1.png
+│   ├── 2.png
+│   └── 3.png
+│
 └── README.md
 ```
 
 ---
 
+## 8. Deployment
 
+* **Frontend:** Render
+* **Database:** CognoDB Cloud
+
+The CognoDB instance will remain active while the submission is under review.
