@@ -15,20 +15,22 @@ export default function App() {
     if (!customerId) return;
     setLoading(true);
     setError(null);
+    setRecommendations(null);
+    setGraphData(null);
 
     try {
-      const [recRes, graphRes] = await Promise.all([
-        fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/customers/${customerId}/recommendations`),
-        fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/graph/customer/${customerId}`)
-      ]);
-
-      if (!recRes.ok || !graphRes.ok) throw new Error('Failed to fetch data from server.');
-
+      // طلب التوصيات لوحدها
+      const recRes = await fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/customers/${customerId}/recommendations`);
+      if (!recRes.ok) throw new Error(`Failed to fetch recommendations (Status: ${recRes.status})`);
       const recJson = await recRes.json();
-      const graphJson = await graphRes.json();
-
       setRecommendations(recJson);
+
+      // طلب الـ Graph لوحده
+      const graphRes = await fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/graph/customer/${customerId}`);
+      if (!graphRes.ok) throw new Error(`Failed to fetch graph data (Status: ${graphRes.status})`);
+      const graphJson = await graphRes.json();
       setGraphData(graphJson);
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -53,7 +55,7 @@ export default function App() {
 
         {error && (
           <div className="bg-rose-950/50 border border-rose-800/50 text-rose-200 p-4 rounded-xl text-sm">
-            ⚠️ {error}
+            ⚠️ Error: {error}
           </div>
         )}
 
