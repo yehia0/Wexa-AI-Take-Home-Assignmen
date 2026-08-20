@@ -11,27 +11,40 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!customerId) return;
+    if (e) e.preventDefault();
+    console.log("Starting search for ID:", customerId);
+    
+    if (!customerId.trim()) {
+      setError("Please enter a valid Customer ID");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setRecommendations(null);
     setGraphData(null);
 
     try {
-      // طلب التوصيات لوحدها
-      const recRes = await fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/customers/${customerId}/recommendations`);
+      const url = `https://wexa-ai-take-home-assignmen-backend.onrender.com/api/customers/${customerId.trim()}/recommendations`;
+      console.log("Fetching from:", url);
+
+      const recRes = await fetch(url);
+      console.log("Rec response status:", recRes.status);
+      
       if (!recRes.ok) throw new Error(`Failed to fetch recommendations (Status: ${recRes.status})`);
       const recJson = await recRes.json();
+      console.log("Rec data received:", recJson);
       setRecommendations(recJson);
 
-      // طلب الـ Graph لوحده
-      const graphRes = await fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/graph/customer/${customerId}`);
+      const graphUrl = `https://wexa-ai-take-home-assignmen-backend.onrender.com/api/graph/customer/${customerId.trim()}`;
+      const graphRes = await fetch(graphUrl);
       if (!graphRes.ok) throw new Error(`Failed to fetch graph data (Status: ${graphRes.status})`);
       const graphJson = await graphRes.json();
+      console.log("Graph data received:", graphJson);
       setGraphData(graphJson);
 
     } catch (err) {
+      console.error("Fetch error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
