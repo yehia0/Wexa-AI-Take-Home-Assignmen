@@ -13,7 +13,7 @@ export default function GraphViewer() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/graph/customer/${customerId}`);
+      const res = await fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/graph/customer/${customerId}`);
       if (!res.ok) throw new Error('Failed to fetch customer subgraph.');
       const data = await res.json();
       setGraphData(data);

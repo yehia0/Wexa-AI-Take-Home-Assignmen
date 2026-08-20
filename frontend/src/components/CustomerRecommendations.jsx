@@ -12,7 +12,7 @@ export default function CustomerRecommendations() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/customers/${customerId}/recommendations`);
+      const res = await fetch(`https://wexa-ai-take-home-assignmen-backend.onrender.com/api/customers/${customerId}/recommendations`);
       if (!res.ok) throw new Error('Failed to fetch recommendations from server.');
       const json = await res.json();
       setData(json);
